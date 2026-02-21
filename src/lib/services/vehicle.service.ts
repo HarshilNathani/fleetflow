@@ -2,9 +2,29 @@ import dbConnect from '@/lib/mongodb';
 import Vehicle, { IVehicle } from '@/models/Vehicle';
 import { VehicleType, VehicleStatus } from '@/types/vehicle';
 
-export async function getAllVehicles() {
+export interface VehicleFilters {
+    search?: string;
+    status?: string;
+}
+
+export async function getAllVehicles(filters?: VehicleFilters) {
     await dbConnect();
-    return await Vehicle.find({});
+    const query: Record<string, unknown> = {};
+
+    if (filters?.search?.trim()) {
+        const search = filters.search.trim();
+        query.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { model: { $regex: search, $options: 'i' } },
+            { licensePlate: { $regex: search, $options: 'i' } },
+        ];
+    }
+
+    if (filters?.status?.trim()) {
+        query.status = filters.status.trim();
+    }
+
+    return await Vehicle.find(query).sort({ createdAt: -1 });
 }
 
 export async function createVehicle(data: Partial<IVehicle>) {

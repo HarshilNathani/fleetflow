@@ -27,11 +27,11 @@ export default function MaintenanceLogs() {
 
     const fetchVehicles = async () => {
         try {
-            const response = await axios.get('/api/vehicles');
-            setVehiclesInShop(response.data.filter((v: any) => v.status === VehicleStatus.IN_SHOP));
-        } catch (error) {
+            const response = await axios.get(`/api/vehicles?status=${VehicleStatus.IN_SHOP}`);
+            setVehiclesInShop(response.data);
+        } catch {
             toast.error('Failed to load vehicles');
-            console.error('Error fetching vehicles:', error);
+            setVehiclesInShop([]);
         } finally {
             setLoading(false);
         }

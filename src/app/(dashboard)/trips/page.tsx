@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Play, CheckCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Play, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -23,32 +30,53 @@ import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import { TripStatus } from '@/types/trip';
 import { TripForm } from '@/components/trips/TripForm';
+import { useDebounce } from '@/hooks/useDebounce';
 import { TripFormValues } from '@/lib/validations/trip';
 import { toast } from 'sonner';
 
 export default function TripDispatcher() {
-    const [trips, setTrips] = useState([]);
+    const [trips, setTrips] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [odoOpen, setOdoOpen] = useState(false);
-    const [selectedTrip, setSelectedTrip] = useState<any>(null);
+    const [selectedTrip, setSelectedTrip] = useState<{ _id: string; startOdometer?: number } | null>(null);
     const [endOdo, setEndOdo] = useState('');
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [vehicles, setVehicles] = useState<{ _id: string; name: string; licensePlate?: string }[]>([]);
+    const [drivers, setDrivers] = useState<{ _id: string; name: string }[]>([]);
+    const [vehicleFilter, setVehicleFilter] = useState<string>('all');
+    const [driverFilter, setDriverFilter] = useState<string>('all');
 
-    useEffect(() => {
-        fetchTrips();
-    }, []);
+    const debouncedSearch = useDebounce(search, 350);
 
-    const fetchTrips = async () => {
+    const fetchTrips = useCallback(async () => {
         try {
-            const response = await axios.get('/api/trips');
+            setLoading(true);
+            const params = new URLSearchParams();
+            if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
+            if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+            if (vehicleFilter && vehicleFilter !== 'all') params.set('vehicleId', vehicleFilter);
+            if (driverFilter && driverFilter !== 'all') params.set('driverId', driverFilter);
+            const response = await axios.get(`/api/trips?${params.toString()}`);
             setTrips(response.data);
-        } catch (error) {
-            console.error('Error fetching trips:', error);
+        } catch {
+            toast.error('Failed to fetch trips');
+            setTrips([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, [debouncedSearch, statusFilter, vehicleFilter, driverFilter]);
+
+    useEffect(() => {
+        fetchTrips();
+    }, [fetchTrips]);
+
+    useEffect(() => {
+        axios.get('/api/vehicles').then((r) => setVehicles(r.data)).catch(() => setVehicles([]));
+        axios.get('/api/drivers').then((r) => setDrivers(r.data)).catch(() => setDrivers([]));
+    }, []);
 
     const onSubmit = async (values: TripFormValues) => {
         try {
@@ -75,6 +103,7 @@ export default function TripDispatcher() {
     };
 
     const onComplete = async () => {
+        if (!selectedTrip) return;
         try {
             setSubmitting(true);
             await axios.post(`/api/trips/complete/${selectedTrip._id}`, { endOdometer: endOdo });
@@ -122,6 +151,58 @@ export default function TripDispatcher() {
                 </Dialog>
             </div>
 
+            <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                        placeholder="Search by route (origin or destination)..."
+                        className="pl-10"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        aria-label="Search trips"
+                    />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        {Object.values(TripStatus).map((s) => (
+                            <SelectItem key={s} value={s}>
+                                {s}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={vehicleFilter} onValueChange={setVehicleFilter}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Vehicle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All vehicles</SelectItem>
+                        {vehicles.map((v) => (
+                            <SelectItem key={v._id} value={v._id}>
+                                {v.name} {v.licensePlate ? `(${v.licensePlate})` : ''}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={driverFilter} onValueChange={setDriverFilter}>
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Driver" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All drivers</SelectItem>
+                        {drivers.map((d) => (
+                            <SelectItem key={d._id} value={d._id}>
+                                {d.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
             <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                 <Table>
                     <TableHeader>
@@ -144,7 +225,7 @@ export default function TripDispatcher() {
                                 <TableCell colSpan={6} className="text-center py-10 text-slate-500">No trips found.</TableCell>
                             </TableRow>
                         ) : (
-                            trips.map((trip: any) => (
+                            (trips as { _id: string; status: string; origin: string; destination: string; cargoWeight: number; vehicleId?: { name?: string; licensePlate?: string }; driverId?: { name?: string } }[]).map((trip) => (
                                 <TableRow key={trip._id}>
                                     <TableCell className="font-medium">
                                         {trip.vehicleId?.name} <span className="text-xs text-slate-500">({trip.vehicleId?.licensePlate})</span>

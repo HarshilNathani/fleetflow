@@ -3,12 +3,19 @@ import { getAllExpenses, createExpense } from '@/lib/services/expense.service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const expenses = await getAllExpenses();
+        const { searchParams } = new URL(req.url);
+        const search = searchParams.get('search') ?? undefined;
+        const vehicleId = searchParams.get('vehicleId') ?? undefined;
+        const type = searchParams.get('type') ?? undefined;
+        const dateFrom = searchParams.get('dateFrom') ?? undefined;
+        const dateTo = searchParams.get('dateTo') ?? undefined;
+        const expenses = await getAllExpenses({ search, vehicleId, type, dateFrom, dateTo });
         return NextResponse.json(expenses);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 

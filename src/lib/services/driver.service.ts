@@ -2,9 +2,28 @@ import dbConnect from '@/lib/mongodb';
 import Driver, { IDriver } from '@/models/Driver';
 import { DriverStatus } from '@/types/driver';
 
-export async function getAllDrivers() {
+export interface DriverFilters {
+    search?: string;
+    status?: string;
+}
+
+export async function getAllDrivers(filters?: DriverFilters) {
     await dbConnect();
-    return await Driver.find({});
+    const query: Record<string, unknown> = {};
+
+    if (filters?.search?.trim()) {
+        const search = filters.search.trim();
+        query.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { licenseNumber: { $regex: search, $options: 'i' } },
+        ];
+    }
+
+    if (filters?.status?.trim()) {
+        query.status = filters.status.trim();
+    }
+
+    return await Driver.find(query).sort({ createdAt: -1 });
 }
 
 export async function createDriver(data: Partial<IDriver>) {
