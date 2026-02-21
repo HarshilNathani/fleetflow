@@ -19,8 +19,6 @@ import { useSidebar } from './SidebarContext';
 import { UserRole } from '@/types/user';
 import { useMemo } from 'react';
 
-// ─── Nav config ───────────────────────────────────────────────────────────────
-
 type NavItem = {
     label: string;
     href: string;
@@ -38,8 +36,6 @@ const NAV_ITEMS: NavItem[] = [
     { label: 'Analytics', href: '/analytics', icon: BarChart3, roles: [UserRole.MANAGER, UserRole.ANALYST] },
 ];
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-
 export function Sidebar() {
     const pathname = usePathname();
     const { data: session, status } = useSession();
@@ -52,12 +48,7 @@ export function Sidebar() {
     );
 
     if (status === 'loading') {
-        return (
-            <div
-                className={cn('shrink-0 h-screen', isCollapsed ? 'w-[60px]' : 'w-[220px]')}
-                style={{ background: 'rgb(250,251,252)', borderRight: '1px solid rgba(15,23,42,0.07)' }}
-            />
-        );
+        return <div className={cn('h-screen', isCollapsed ? 'w-[80px]' : 'w-[260px]')} />;
     }
 
     const isActive = (href: string) => pathname?.startsWith(href);
@@ -65,121 +56,72 @@ export function Sidebar() {
     return (
         <motion.aside
             initial={false}
-            animate={{ width: isCollapsed ? 60 : 220 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="relative flex flex-col h-screen shrink-0 overflow-hidden z-30"
-            style={{
-                background: 'rgb(250,251,252)',
-                borderRight: '1px solid rgba(15,23,42,0.07)',
-                boxShadow: '1px 0 0 rgba(15,23,42,0.03)',
-            }}
+            animate={{ width: isCollapsed ? 80 : 260 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="flex flex-col h-screen bg-slate-900 border-r border-slate-800 text-white shadow-xl"
         >
-            {/* ── Wordmark ───────────────────────────────────────────── */}
-            <div
-                className="flex h-[52px] items-center shrink-0 px-3.5"
-                style={{ borderBottom: '1px solid rgba(15,23,42,0.07)' }}
-            >
-                <div className="flex items-center gap-2.5 overflow-hidden">
-                    {/* Logo mark */}
-                    <div
-                        className="h-[28px] w-[28px] shrink-0 rounded-[7px] bg-slate-900 flex items-center justify-center"
-                        style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08), 0 1px 3px rgba(15,23,42,0.20)' }}
-                    >
-                        <Truck className="h-[14px] w-[14px] text-white" />
+            <div className="flex items-center h-20 px-6">
+                <div className="flex items-center gap-3">
+                    <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
+                        <Truck className="h-5 w-5 text-white" />
                     </div>
-
                     {!isCollapsed && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.15 }}
-                            className="overflow-hidden"
-                        >
-                            <p className="text-[13px] font-bold text-slate-900 tracking-tight whitespace-nowrap leading-none">
-                                FleetFlow
-                            </p>
-                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest whitespace-nowrap leading-none mt-1">
-                                Logistics OS
-                            </p>
-                        </motion.div>
+                        <h1 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                            FleetFlow
+                        </h1>
                     )}
                 </div>
             </div>
 
-            {/* ── Nav ────────────────────────────────────────────────── */}
-            <nav className="flex-1 py-3 overflow-y-auto overflow-x-hidden">
-                {/* Section label */}
-                {!isCollapsed && (
-                    <p className="px-4 mb-1.5 text-[9px] font-semibold text-slate-400 uppercase tracking-[0.12em]">
-                        Navigation
-                    </p>
-                )}
+            <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+                {visibleItems.map((item) => {
+                    const active = isActive(item.href);
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={cn(
+                                'group relative flex items-center h-11 rounded-xl transition-all duration-200',
+                                isCollapsed ? 'justify-center' : 'px-4 gap-3',
+                                active
+                                    ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_18px_-6px_rgba(59,130,246,0.45)]'
+                                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                            )}
+                        >
+                            <item.icon
+                                className={cn(
+                                    'h-5 w-5 transition-transform duration-200 group-hover:scale-110',
+                                    active && 'text-blue-400'
+                                )}
+                            />
 
-                <ul className="space-y-px px-2">
-                    {visibleItems.map((item) => {
-                        const active = isActive(item.href);
-                        return (
-                            <li key={item.href}>
-                                <Link
-                                    href={item.href}
-                                    title={isCollapsed ? item.label : undefined}
-                                    className={cn(
-                                        'group relative flex items-center h-9 rounded-lg transition-all duration-100 outline-none',
-                                        isCollapsed ? 'justify-center' : 'px-3 gap-3',
-                                        active
-                                            ? 'text-slate-900'
-                                            : 'text-slate-500 hover:text-slate-800'
-                                    )}
-                                    style={active ? {
-                                        background: 'rgba(15,23,42,0.06)',
-                                        boxShadow: 'inset 0 0 0 0.5px rgba(15,23,42,0.08)',
-                                    } : undefined}
-                                >
-                                    {/* Active left bar */}
-                                    {active && (
-                                        <motion.span
-                                            layoutId="nav-active"
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 bg-slate-900 rounded-r-full"
-                                        />
-                                    )}
+                            {!isCollapsed && (
+                                <span className="text-sm font-medium whitespace-nowrap">
+                                    {item.label}
+                                </span>
+                            )}
 
-                                    <item.icon
-                                        className={cn(
-                                            'h-[15px] w-[15px] shrink-0',
-                                            active ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'
-                                        )}
-                                    />
-
-                                    {!isCollapsed && (
-                                        <span className="text-[13px] font-medium whitespace-nowrap">
-                                            {item.label}
-                                        </span>
-                                    )}
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
+                            {active && (
+                                <motion.div
+                                    layoutId="active-indicator"
+                                    className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full"
+                                />
+                            )}
+                        </Link>
+                    );
+                })}
             </nav>
 
-            {/* ── Footer ─────────────────────────────────────────────── */}
-            <div
-                className="shrink-0 p-2"
-                style={{ borderTop: '1px solid rgba(15,23,42,0.07)' }}
-            >
+            <div className="p-3 border-t border-slate-800">
                 <button
                     onClick={() => signOut()}
-                    title={isCollapsed ? 'Log out' : undefined}
                     className={cn(
-                        'flex items-center h-9 w-full rounded-lg text-slate-400 transition-colors duration-100',
-                        'hover:bg-red-50 hover:text-red-500',
-                        isCollapsed ? 'justify-center' : 'px-3 gap-3'
+                        'flex items-center w-full h-11 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all',
+                        isCollapsed ? 'justify-center' : 'px-4 gap-3'
                     )}
                 >
-                    <LogOut className="h-[15px] w-[15px] shrink-0" />
-                    {!isCollapsed && (
-                        <span className="text-[13px] font-medium">Log out</span>
-                    )}
+                    <LogOut className="h-5 w-5" />
+                    {!isCollapsed && <span className="text-sm font-medium">Log out</span>}
                 </button>
             </div>
         </motion.aside>
