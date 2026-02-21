@@ -3,12 +3,16 @@ import { getAllDrivers, createDriver } from '@/lib/services/driver.service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const drivers = await getAllDrivers();
+        const { searchParams } = new URL(req.url);
+        const search = searchParams.get('search') ?? undefined;
+        const status = searchParams.get('status') ?? undefined;
+        const drivers = await getAllDrivers({ search, status });
         return NextResponse.json(drivers);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 

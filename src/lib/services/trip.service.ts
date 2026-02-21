@@ -7,9 +7,38 @@ import Driver from '@/models/Driver';
 import { DriverStatus } from '@/types/driver';
 import mongoose from 'mongoose';
 
-export async function getAllTrips(vehicleId?: string) {
+export interface TripFilters {
+    vehicleId?: string;
+    driverId?: string;
+    status?: string;
+    search?: string;
+}
+
+export async function getAllTrips(filters?: TripFilters | string) {
     await dbConnect();
-    const query = vehicleId ? { vehicleId } : {};
+    const query: Record<string, unknown> = {};
+
+    // Support legacy vehicleId string param (used by ExpenseForm)
+    const resolvedFilters: TripFilters | undefined =
+        typeof filters === 'string' ? { vehicleId: filters } : filters;
+
+    if (resolvedFilters?.vehicleId) {
+        query.vehicleId = resolvedFilters.vehicleId;
+    }
+    if (resolvedFilters?.driverId) {
+        query.driverId = resolvedFilters.driverId;
+    }
+    if (resolvedFilters?.status?.trim()) {
+        query.status = resolvedFilters.status.trim();
+    }
+    if (resolvedFilters?.search?.trim()) {
+        const search = resolvedFilters.search.trim();
+        query.$or = [
+            { origin: { $regex: search, $options: 'i' } },
+            { destination: { $regex: search, $options: 'i' } },
+        ];
+    }
+
     return await Trip.find(query)
         .sort({ createdAt: -1 })
         .populate('vehicleId')

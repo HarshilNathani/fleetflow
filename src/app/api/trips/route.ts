@@ -6,11 +6,15 @@ import { authOptions } from '@/lib/auth';
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
-        const vehicleId = searchParams.get('vehicleId');
-        const trips = await getAllTrips(vehicleId || undefined);
+        const vehicleId = searchParams.get('vehicleId') ?? undefined;
+        const driverId = searchParams.get('driverId') ?? undefined;
+        const status = searchParams.get('status') ?? undefined;
+        const search = searchParams.get('search') ?? undefined;
+        const trips = await getAllTrips({ vehicleId, driverId, status, search });
         return NextResponse.json(trips);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 

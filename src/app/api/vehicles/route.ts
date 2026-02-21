@@ -2,14 +2,17 @@ import { NextResponse } from 'next/server';
 import { getAllVehicles, createVehicle } from '@/lib/services/vehicle.service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { UserRole } from '@/types/user';
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const vehicles = await getAllVehicles();
+        const { searchParams } = new URL(req.url);
+        const search = searchParams.get('search') ?? undefined;
+        const status = searchParams.get('status') ?? undefined;
+        const vehicles = await getAllVehicles({ search, status });
         return NextResponse.json(vehicles);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
