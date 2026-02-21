@@ -6,6 +6,13 @@ import { VehicleStatus } from '@/types/vehicle';
 import Driver from '@/models/Driver';
 import { DriverStatus } from '@/types/driver';
 import mongoose from 'mongoose';
+import { createActivity, getTargetRolesForEntity } from './activity.service';
+import { UserRole } from '@/types/user';
+
+export interface ActorContext {
+    userId: string;
+    role: UserRole;
+}
 
 export interface TripFilters {
     vehicleId?: string;
@@ -45,10 +52,9 @@ export async function getAllTrips(filters?: TripFilters | string) {
         .populate('driverId');
 }
 
-export async function createTrip(data: Partial<ITrip>) {
+export async function createTrip(data: Partial<ITrip>, actor?: ActorContext) {
     await dbConnect();
 
-    // Business Rules Validation
     const vehicle = await Vehicle.findById(data.vehicleId);
     const driver = await Driver.findById(data.driverId);
 
@@ -77,13 +83,35 @@ export async function createTrip(data: Partial<ITrip>) {
     }
 
     const trip = new Trip(data);
-    return await trip.save();
+    const saved = await trip.save();
+
+    if (actor) {
+        const tripRef = `TR-${saved._id.toString().slice(-6).toUpperCase()}`;
+        await createActivity({
+            type: 'trip_created',
+            title: `Trip ${tripRef} created`,
+            description: `${vehicle.name} (${vehicle.licensePlate}) → ${data.origin} to ${data.destination}`,
+            entityType: 'trip',
+            entityId: saved._id,
+            actorRole: actor.role,
+            targetRoles: getTargetRolesForEntity('trip', 'trip_created'),
+            metadata: {
+                vehicleName: vehicle.name,
+                vehiclePlate: vehicle.licensePlate,
+                driverName: driver.name,
+                origin: data.origin,
+                destination: data.destination,
+            },
+        });
+    }
+
+    return saved;
 }
 
-export async function dispatchTrip(id: string) {
+export async function dispatchTrip(id: string, actor?: ActorContext) {
     await dbConnect();
 
-    const trip = await Trip.findById(id);
+    const trip = await Trip.findById(id).populate('vehicleId').populate('driverId');
     if (!trip) throw new Error('Trip not found');
     if (trip.status !== TripStatus.DRAFT) throw new Error('Only draft trips can be dispatched');
 
@@ -93,13 +121,35 @@ export async function dispatchTrip(id: string) {
     await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.ON_TRIP });
     await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.ON_TRIP });
 
+    if (actor) {
+        const vehicle = trip.vehicleId as { name?: string; licensePlate?: string };
+        const driver = trip.driverId as { name?: string };
+        const tripRef = `TR-${trip._id.toString().slice(-6).toUpperCase()}`;
+        await createActivity({
+            type: 'trip_dispatched',
+            title: `Trip ${tripRef} dispatched`,
+            description: `${vehicle?.name || 'Vehicle'} (${vehicle?.licensePlate || ''}) with ${driver?.name || 'driver'} to ${trip.origin} → ${trip.destination}`,
+            entityType: 'trip',
+            entityId: trip._id,
+            actorRole: actor.role,
+            targetRoles: getTargetRolesForEntity('trip', 'trip_dispatched'),
+            metadata: {
+                vehicleName: vehicle?.name,
+                vehiclePlate: vehicle?.licensePlate,
+                driverName: driver?.name,
+                origin: trip.origin,
+                destination: trip.destination,
+            },
+        });
+    }
+
     return trip;
 }
 
-export async function completeTrip(id: string, endOdometer: number) {
+export async function completeTrip(id: string, endOdometer: number, actor?: ActorContext) {
     await dbConnect();
 
-    const trip = await Trip.findById(id);
+    const trip = await Trip.findById(id).populate('vehicleId').populate('driverId');
     if (!trip) throw new Error('Trip not found');
     if (trip.status !== TripStatus.DISPATCHED) throw new Error('Only dispatched trips can be completed');
 
@@ -118,10 +168,45 @@ export async function completeTrip(id: string, endOdometer: number) {
 
     await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.AVAILABLE });
 
+    if (actor) {
+        const vehicle = trip.vehicleId as { name?: string; licensePlate?: string };
+        const tripRef = `TR-${trip._id.toString().slice(-6).toUpperCase()}`;
+        await createActivity({
+            type: 'trip_completed',
+            title: `Trip ${tripRef} completed`,
+            description: `${vehicle?.name || 'Vehicle'} returned, odometer ${trip.startOdometer} → ${endOdometer} km`,
+            entityType: 'trip',
+            entityId: trip._id,
+            actorRole: actor.role,
+            targetRoles: getTargetRolesForEntity('trip', 'trip_completed'),
+            metadata: {
+                vehiclePlate: vehicle?.licensePlate,
+                revenue: trip.revenue,
+                endOdometer,
+            },
+        });
+    }
+
     return trip;
 }
 
-export async function cancelTrip(id: string) {
+export async function cancelTrip(id: string, actor?: ActorContext) {
     await dbConnect();
-    return await Trip.findByIdAndUpdate(id, { status: TripStatus.CANCELLED }, { new: true });
+    const trip = await Trip.findByIdAndUpdate(id, { status: TripStatus.CANCELLED }, { new: true })
+        .populate('vehicleId').populate('driverId');
+    if (trip && actor) {
+        const vehicle = trip.vehicleId as { name?: string; licensePlate?: string };
+        const tripRef = `TR-${trip._id.toString().slice(-6).toUpperCase()}`;
+        await createActivity({
+            type: 'trip_cancelled',
+            title: `Trip ${tripRef} cancelled`,
+            description: `${vehicle?.name || 'Vehicle'} ${trip.origin} → ${trip.destination}`,
+            entityType: 'trip',
+            entityId: trip._id,
+            actorRole: actor.role,
+            targetRoles: getTargetRolesForEntity('trip', 'trip_cancelled'),
+            metadata: { vehiclePlate: vehicle?.licensePlate },
+        });
+    }
+    return trip;
 }

@@ -27,7 +27,10 @@ export async function POST(req: Request) {
         }
 
         const data = await req.json();
-        const expense = await createExpense(data);
+        const actor = session.user?.id && session.user?.role
+            ? { userId: session.user.id, role: session.user.role }
+            : undefined;
+        const expense = await createExpense(data, actor);
         return NextResponse.json(expense, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

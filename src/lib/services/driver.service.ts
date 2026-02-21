@@ -1,6 +1,13 @@
 import dbConnect from '@/lib/mongodb';
 import Driver, { IDriver } from '@/models/Driver';
 import { DriverStatus } from '@/types/driver';
+import { createActivity, getTargetRolesForEntity } from './activity.service';
+import { UserRole } from '@/types/user';
+
+export interface ActorContext {
+    userId: string;
+    role: UserRole;
+}
 
 export interface DriverFilters {
     search?: string;
@@ -37,9 +44,27 @@ export async function getDriverById(id: string) {
     return await Driver.findById(id);
 }
 
-export async function updateDriver(id: string, data: Partial<IDriver>) {
+export async function updateDriver(id: string, data: Partial<IDriver>, actor?: ActorContext) {
     await dbConnect();
-    return await Driver.findByIdAndUpdate(id, data, { new: true });
+    const before = await Driver.findById(id);
+    const updated = await Driver.findByIdAndUpdate(id, data, { new: true });
+    if (actor && before && updated && data.status !== undefined && before.status !== data.status) {
+        await createActivity({
+            type: 'driver_status_change',
+            title: `Driver ${updated.name} status changed`,
+            description: `${before.status} → ${data.status}`,
+            entityType: 'driver',
+            entityId: updated._id,
+            actorRole: actor.role,
+            targetRoles: getTargetRolesForEntity('driver', 'driver_status_change'),
+            metadata: {
+                driverName: updated.name,
+                fromStatus: before.status,
+                toStatus: data.status,
+            },
+        });
+    }
+    return updated;
 }
 
 export async function deleteDriver(id: string) {

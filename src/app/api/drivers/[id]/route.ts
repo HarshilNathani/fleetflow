@@ -31,7 +31,10 @@ export async function PUT(
         }
 
         const data = await req.json();
-        const driver = await updateDriver(id, data);
+        const actor = session.user?.id && session.user?.role
+            ? { userId: session.user.id, role: session.user.role }
+            : undefined;
+        const driver = await updateDriver(id, data, actor);
         if (!driver) {
             return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
         }
