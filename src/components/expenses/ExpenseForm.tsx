@@ -86,19 +86,16 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
             }
         };
 
-        // Reset tripId when vehicle changes
         form.setValue('tripId', '');
         fetchTrips();
     }, [vehicleId, form]);
 
     const handleFormSubmit = (data: any) => {
-        // Convert "none" or empty to undefined
         const submissionData = {
             ...data,
             tripId: (data.tripId === 'none' || data.tripId === '') ? undefined : data.tripId
         };
 
-        // Final sanity check: if trip exists, verify it belongs to this vehicle in the local state
         if (submissionData.tripId) {
             const selectedTrip = trips.find(t => t._id === submissionData.tripId);
             if (selectedTrip && selectedTrip.vehicleId?._id !== submissionData.vehicleId && selectedTrip.vehicleId !== submissionData.vehicleId) {
@@ -258,8 +255,18 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                                 <FormControl>
                                     <Input
                                         type="date"
-                                        value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
-                                        onChange={(e) => field.onChange(new Date(e.target.value))}
+                                        value={
+                                            field.value && !isNaN(new Date(field.value).getTime())
+                                                ? new Date(field.value).toISOString().split("T")[0]
+                                                : ""
+                                        }
+                                        onChange={(e) => {
+                                            if (!e.target.value) {
+                                                field.onChange(null);
+                                            } else {
+                                                field.onChange(new Date(e.target.value));
+                                            }
+                                        }}
                                     />
                                 </FormControl>
                                 <FormMessage />

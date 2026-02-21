@@ -13,19 +13,16 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Load preference from localStorage
     useEffect(() => {
         const saved = localStorage.getItem('sidebar-collapsed');
-        if (saved !== null) {
-            setIsCollapsed(saved === 'true');
-        }
+        if (saved !== null) setIsCollapsed(saved === 'true');
     }, []);
 
     const toggleSidebar = () => {
         setIsCollapsed((prev) => {
-            const newValue = !prev;
-            localStorage.setItem('sidebar-collapsed', String(newValue));
-            return newValue;
+            const next = !prev;
+            localStorage.setItem('sidebar-collapsed', String(next));
+            return next;
         });
     };
 
@@ -37,9 +34,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useSidebar() {
-    const context = useContext(SidebarContext);
-    if (context === undefined) {
-        throw new Error('useSidebar must be used within a SidebarProvider');
-    }
-    return context;
+    const ctx = useContext(SidebarContext);
+    if (!ctx) throw new Error('useSidebar must be used within a SidebarProvider');
+    return ctx;
 }
