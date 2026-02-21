@@ -14,7 +14,10 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const result = await completeMaintenance(vehicleId);
+        const actor = session.user?.id && session.user?.role
+            ? { userId: session.user.id, role: session.user.role }
+            : undefined;
+        const result = await completeMaintenance(vehicleId, actor);
         return NextResponse.json(result);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

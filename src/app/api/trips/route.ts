@@ -26,7 +26,10 @@ export async function POST(req: Request) {
         }
 
         const data = await req.json();
-        const trip = await createTrip(data);
+        const actor = session.user?.id && session.user?.role
+            ? { userId: session.user.id, role: session.user.role }
+            : undefined;
+        const trip = await createTrip(data, actor);
         return NextResponse.json(trip, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });

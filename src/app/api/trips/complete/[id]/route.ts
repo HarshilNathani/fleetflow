@@ -19,7 +19,10 @@ export async function POST(
             return NextResponse.json({ error: 'End odometer is required' }, { status: 400 });
         }
 
-        const trip = await completeTrip(id, Number(endOdometer));
+        const actor = session.user?.id && session.user?.role
+            ? { userId: session.user.id, role: session.user.role }
+            : undefined;
+        const trip = await completeTrip(id, Number(endOdometer), actor);
         return NextResponse.json(trip);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });
