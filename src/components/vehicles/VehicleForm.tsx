@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { vehicleSchema, VehicleFormValues } from '@/lib/validations/vehicle';
-import { VehicleType, VehicleStatus } from '@/models/Vehicle';
+import { VehicleType, VehicleStatus } from '@/types/vehicle';
 import {
     Form,
     FormControl,
@@ -25,12 +25,12 @@ import { Loader2 } from 'lucide-react';
 
 interface VehicleFormProps {
     initialData?: any;
-    onSubmit: (data: VehicleFormValues) => void;
+    onSubmit: (data: any) => void;
     loading?: boolean;
 }
 
 export function VehicleForm({ initialData, onSubmit, loading }: VehicleFormProps) {
-    const form = useForm<VehicleFormValues>({
+    const form = useForm<any>({
         resolver: zodResolver(vehicleSchema),
         defaultValues: initialData || {
             name: '',

@@ -3,8 +3,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { driverSchema, DriverFormValues } from '@/lib/validations/driver';
-import { DriverStatus } from '@/models/Driver';
-import { VehicleType } from '@/models/Vehicle';
+import { DriverStatus } from '@/types/driver';
+import { VehicleType } from '@/types/vehicle';
 import {
     Form,
     FormControl,
@@ -27,12 +27,12 @@ import { Loader2 } from 'lucide-react';
 
 interface DriverFormProps {
     initialData?: any;
-    onSubmit: (data: DriverFormValues) => void;
+    onSubmit: (data: any) => void;
     loading?: boolean;
 }
 
 export function DriverForm({ initialData, onSubmit, loading }: DriverFormProps) {
-    const form = useForm<DriverFormValues>({
+    const form = useForm<any>({
         resolver: zodResolver(driverSchema),
         defaultValues: initialData ? {
             ...initialData,
@@ -139,7 +139,7 @@ export function DriverForm({ initialData, onSubmit, loading }: DriverFormProps) 
                                                 onCheckedChange={(checked) => {
                                                     return checked
                                                         ? field.onChange([...field.value, type])
-                                                        : field.onChange(field.value?.filter((value) => value !== type));
+                                                        : field.onChange(field.value?.filter((value: any) => value !== type));
                                                 }}
                                             />
                                         </FormControl>

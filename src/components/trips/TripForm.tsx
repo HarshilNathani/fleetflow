@@ -25,15 +25,15 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 interface TripFormProps {
-    onSubmit: (data: TripFormValues) => void;
+    onSubmit: (data: any) => void;
     loading?: boolean;
 }
 
 export function TripForm({ onSubmit, loading }: TripFormProps) {
-    const [vehicles, setVehicles] = useState([]);
-    const [drivers, setDrivers] = useState([]);
+    const [vehicles, setVehicles] = useState<any[]>([]);
+    const [drivers, setDrivers] = useState<any[]>([]);
 
-    const form = useForm<TripFormValues>({
+    const form = useForm<any>({
         resolver: zodResolver(tripSchema),
         defaultValues: {
             vehicleId: '',

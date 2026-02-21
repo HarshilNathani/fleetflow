@@ -1,11 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export enum TripStatus {
-    DRAFT = 'draft',
-    DISPATCHED = 'dispatched',
-    COMPLETED = 'completed',
-    CANCELLED = 'cancelled',
-}
+export { TripStatus } from '@/types/trip';
+import { TripStatus } from '@/types/trip';
 
 export interface ITrip extends Document {
     vehicleId: mongoose.Types.ObjectId;

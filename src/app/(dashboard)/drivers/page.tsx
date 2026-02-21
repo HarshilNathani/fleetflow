@@ -24,6 +24,7 @@ import axios from 'axios';
 import { DriverStatus } from '@/models/Driver';
 import { DriverForm } from '@/components/drivers/DriverForm';
 import { DriverFormValues } from '@/lib/validations/driver';
+import { cn } from '@/lib/utils';
 
 export default function DriverProfiles() {
     const [drivers, setDrivers] = useState([]);

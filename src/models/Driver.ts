@@ -1,12 +1,8 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { VehicleType } from './Vehicle';
+import { VehicleType } from '@/types/vehicle';
 
-export enum DriverStatus {
-    AVAILABLE = 'available',
-    ON_TRIP = 'on_trip',
-    OFF_DUTY = 'off_duty',
-    SUSPENDED = 'suspended',
-}
+export { DriverStatus } from '@/types/driver';
+import { DriverStatus } from '@/types/driver';
 
 export interface IDriver extends Document {
     name: string;
