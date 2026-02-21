@@ -49,63 +49,43 @@ export async function createTrip(data: Partial<ITrip>) {
 
 export async function dispatchTrip(id: string) {
     await dbConnect();
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    try {
-        const trip = await Trip.findById(id).session(session);
-        if (!trip) throw new Error('Trip not found');
-        if (trip.status !== TripStatus.DRAFT) throw new Error('Only draft trips can be dispatched');
+    const trip = await Trip.findById(id);
+    if (!trip) throw new Error('Trip not found');
+    if (trip.status !== TripStatus.DRAFT) throw new Error('Only draft trips can be dispatched');
 
-        trip.status = TripStatus.DISPATCHED;
-        await trip.save({ session });
+    trip.status = TripStatus.DISPATCHED;
+    await trip.save();
 
-        await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.ON_TRIP }, { session });
-        await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.ON_TRIP }, { session });
+    await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.ON_TRIP });
+    await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.ON_TRIP });
 
-        await session.commitTransaction();
-        return trip;
-    } catch (error) {
-        await session.abortTransaction();
-        throw error;
-    } finally {
-        session.endSession();
-    }
+    return trip;
 }
 
 export async function completeTrip(id: string, endOdometer: number) {
     await dbConnect();
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    try {
-        const trip = await Trip.findById(id).session(session);
-        if (!trip) throw new Error('Trip not found');
-        if (trip.status !== TripStatus.DISPATCHED) throw new Error('Only dispatched trips can be completed');
+    const trip = await Trip.findById(id);
+    if (!trip) throw new Error('Trip not found');
+    if (trip.status !== TripStatus.DISPATCHED) throw new Error('Only dispatched trips can be completed');
 
-        if (endOdometer <= trip.startOdometer) {
-            throw new Error('End odometer must be greater than start odometer');
-        }
-
-        trip.status = TripStatus.COMPLETED;
-        trip.endOdometer = endOdometer;
-        await trip.save({ session });
-
-        await Vehicle.findByIdAndUpdate(trip.vehicleId, {
-            status: VehicleStatus.AVAILABLE,
-            odometer: endOdometer
-        }, { session });
-
-        await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.AVAILABLE }, { session });
-
-        await session.commitTransaction();
-        return trip;
-    } catch (error) {
-        await session.abortTransaction();
-        throw error;
-    } finally {
-        session.endSession();
+    if (endOdometer <= trip.startOdometer) {
+        throw new Error('End odometer must be greater than start odometer');
     }
+
+    trip.status = TripStatus.COMPLETED;
+    trip.endOdometer = endOdometer;
+    await trip.save();
+
+    await Vehicle.findByIdAndUpdate(trip.vehicleId, {
+        status: VehicleStatus.AVAILABLE,
+        odometer: endOdometer
+    });
+
+    await Driver.findByIdAndUpdate(trip.driverId, { status: DriverStatus.AVAILABLE });
+
+    return trip;
 }
 
 export async function cancelTrip(id: string) {

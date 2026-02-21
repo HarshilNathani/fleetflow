@@ -24,6 +24,7 @@ import axios from 'axios';
 import { TripStatus } from '@/types/trip';
 import { TripForm } from '@/components/trips/TripForm';
 import { TripFormValues } from '@/lib/validations/trip';
+import { toast } from 'sonner';
 
 export default function TripDispatcher() {
     const [trips, setTrips] = useState([]);
@@ -54,9 +55,10 @@ export default function TripDispatcher() {
             setSubmitting(true);
             await axios.post('/api/trips', values);
             setOpen(false);
+            toast.success('Trip created successfully');
             fetchTrips();
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Error creating trip');
+            toast.error(error.response?.data?.error || 'Error creating trip');
         } finally {
             setSubmitting(false);
         }
@@ -65,9 +67,10 @@ export default function TripDispatcher() {
     const onDispatch = async (id: string) => {
         try {
             await axios.post(`/api/trips/dispatch/${id}`);
+            toast.success('Trip dispatched');
             fetchTrips();
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Error dispatching trip');
+            toast.error(error.response?.data?.error || 'Error dispatching trip');
         }
     };
 
@@ -78,9 +81,10 @@ export default function TripDispatcher() {
             setOdoOpen(false);
             setSelectedTrip(null);
             setEndOdo('');
+            toast.success('Trip completed');
             fetchTrips();
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Error completing trip');
+            toast.error(error.response?.data?.error || 'Error completing trip');
         } finally {
             setSubmitting(false);
         }
