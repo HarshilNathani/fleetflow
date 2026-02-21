@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { ExpenseType } from '@/models/Expense';
+import { ExpenseType } from '@/types/expense';
 import { ExpenseForm } from '@/components/expenses/ExpenseForm';
 import { ExpenseFormValues } from '@/lib/validations/expense';
 

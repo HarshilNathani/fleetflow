@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { VehicleStatus } from '@/models/Vehicle';
+import { VehicleStatus } from '@/types/vehicle';
 import { VehicleForm } from '@/components/vehicles/VehicleForm';
 import { VehicleFormValues } from '@/lib/validations/vehicle';
 

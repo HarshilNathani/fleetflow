@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/mongodb';
 import Vehicle, { IVehicle } from '@/models/Vehicle';
+import { VehicleType, VehicleStatus } from '@/types/vehicle';
 
 export async function getAllVehicles() {
     await dbConnect();

@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { TripStatus } from '@/models/Trip';
+import { TripStatus } from '@/types/trip';
 
 export const tripSchema = z.object({
     vehicleId: z.string().min(1, 'Vehicle is required'),

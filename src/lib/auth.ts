@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
+import { UserRole } from '@/types/user';
 import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {

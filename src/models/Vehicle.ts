@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export { VehicleType, VehicleStatus } from '@/types/vehicle';
 import { VehicleType, VehicleStatus } from '@/types/vehicle';
 
 export interface IVehicle {

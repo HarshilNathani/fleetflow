@@ -5,9 +5,10 @@ import { authOptions } from '@/lib/auth';
 
 export async function POST(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -18,7 +19,7 @@ export async function POST(
             return NextResponse.json({ error: 'End odometer is required' }, { status: 400 });
         }
 
-        const trip = await completeTrip(params.id, Number(endOdometer));
+        const trip = await completeTrip(id, Number(endOdometer));
         return NextResponse.json(trip);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });

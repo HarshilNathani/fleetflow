@@ -1,6 +1,8 @@
 import dbConnect from '@/lib/mongodb';
-import Expense, { IExpense, ExpenseType } from '@/models/Expense';
-import Vehicle, { VehicleStatus } from '@/models/Vehicle';
+import Expense, { IExpense } from '@/models/Expense';
+import { ExpenseType } from '@/types/expense';
+import Vehicle from '@/models/Vehicle';
+import { VehicleStatus } from '@/types/vehicle';
 import mongoose from 'mongoose';
 
 export async function getAllExpenses() {

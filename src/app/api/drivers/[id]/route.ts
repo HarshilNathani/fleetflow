@@ -5,10 +5,11 @@ import { authOptions } from '@/lib/auth';
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const driver = await getDriverById(params.id);
+        const { id } = await params;
+        const driver = await getDriverById(id);
         if (!driver) {
             return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
         }
@@ -20,16 +21,17 @@ export async function GET(
 
 export async function PUT(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const data = await req.json();
-        const driver = await updateDriver(params.id, data);
+        const driver = await updateDriver(id, data);
         if (!driver) {
             return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
         }
@@ -41,15 +43,16 @@ export async function PUT(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const driver = await deleteDriver(params.id);
+        const driver = await deleteDriver(id);
         if (!driver) {
             return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
         }

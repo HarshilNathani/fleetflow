@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export { ExpenseType } from '@/types/expense';
 import { ExpenseType } from '@/types/expense';
 
 export interface IExpense extends Document {

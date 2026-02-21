@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { VehicleType, VehicleStatus } from '@/models/Vehicle';
+import { VehicleType, VehicleStatus } from '@/types/vehicle';
 
 export const vehicleSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),

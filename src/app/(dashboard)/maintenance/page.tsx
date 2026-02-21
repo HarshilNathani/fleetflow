@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { VehicleStatus } from '@/models/Vehicle';
+import { VehicleStatus } from '@/types/vehicle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function MaintenanceLogs() {

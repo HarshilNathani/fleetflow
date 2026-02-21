@@ -5,10 +5,11 @@ import { authOptions } from '@/lib/auth';
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const vehicle = await getVehicleById(params.id);
+        const { id } = await params;
+        const vehicle = await getVehicleById(id);
         if (!vehicle) {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
@@ -20,16 +21,17 @@ export async function GET(
 
 export async function PUT(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const data = await req.json();
-        const vehicle = await updateVehicle(params.id, data);
+        const vehicle = await updateVehicle(id, data);
         if (!vehicle) {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }
@@ -41,15 +43,16 @@ export async function PUT(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const vehicle = await deleteVehicle(params.id);
+        const vehicle = await deleteVehicle(id);
         if (!vehicle) {
             return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
         }

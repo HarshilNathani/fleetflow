@@ -1,7 +1,10 @@
 import dbConnect from '@/lib/mongodb';
-import Trip, { ITrip, TripStatus } from '@/models/Trip';
-import Vehicle, { VehicleStatus } from '@/models/Vehicle';
-import Driver, { DriverStatus } from '@/models/Driver';
+import Trip, { ITrip } from '@/models/Trip';
+import { TripStatus } from '@/types/trip';
+import Vehicle from '@/models/Vehicle';
+import { VehicleStatus } from '@/types/vehicle';
+import Driver from '@/models/Driver';
+import { DriverStatus } from '@/types/driver';
 import mongoose from 'mongoose';
 
 export async function getAllTrips() {

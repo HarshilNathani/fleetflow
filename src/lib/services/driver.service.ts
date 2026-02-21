@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/mongodb';
 import Driver, { IDriver } from '@/models/Driver';
+import { DriverStatus } from '@/types/driver';
 
 export async function getAllDrivers() {
     await dbConnect();

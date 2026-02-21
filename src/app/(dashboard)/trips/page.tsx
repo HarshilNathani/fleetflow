@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Play, CheckCircle } from 'lucide-react';
+import { Plus, Search, Filter, Play, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { TripStatus } from '@/models/Trip';
+import { TripStatus } from '@/types/trip';
 import { TripForm } from '@/components/trips/TripForm';
 import { TripFormValues } from '@/lib/validations/trip';
 

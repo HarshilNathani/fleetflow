@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { ExpenseType } from '@/models/Expense';
+import { ExpenseType } from '@/types/expense';
 
 export const expenseSchema = z.object({
     vehicleId: z.string().min(1, 'Vehicle is required'),

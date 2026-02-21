@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { VehicleType } from '@/types/vehicle';
 
-export { DriverStatus } from '@/types/driver';
 import { DriverStatus } from '@/types/driver';
 
 export interface IDriver extends Document {

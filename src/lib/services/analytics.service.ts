@@ -1,7 +1,10 @@
 import dbConnect from '@/lib/mongodb';
-import Vehicle, { VehicleStatus } from '@/models/Vehicle';
-import Trip, { TripStatus } from '@/models/Trip';
-import Expense, { ExpenseType } from '@/models/Expense';
+import Vehicle from '@/models/Vehicle';
+import { VehicleStatus } from '@/types/vehicle';
+import Trip from '@/models/Trip';
+import { TripStatus } from '@/types/trip';
+import Expense from '@/models/Expense';
+import { ExpenseType } from '@/types/expense';
 
 export async function getDashboardKPIs() {
     await dbConnect();

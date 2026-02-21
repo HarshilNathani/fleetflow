@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { DriverStatus } from '@/models/Driver';
+import { DriverStatus } from '@/types/driver';
 import { DriverForm } from '@/components/drivers/DriverForm';
 import { DriverFormValues } from '@/lib/validations/driver';
 import { cn } from '@/lib/utils';

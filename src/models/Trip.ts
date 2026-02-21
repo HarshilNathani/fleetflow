@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export { TripStatus } from '@/types/trip';
 import { TripStatus } from '@/types/trip';
 
 export interface ITrip extends Document {
