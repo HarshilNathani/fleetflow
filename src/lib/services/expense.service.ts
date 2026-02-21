@@ -73,7 +73,7 @@ export async function createExpense(data: Partial<IExpense>, actor?: ActorContex
                 : `Fuel expense logged for ${vehicle.licensePlate}`,
             description: isMaintenance
                 ? `${vehicle.name} moved to In Shop`
-                : `${data.liters ? `${data.liters}L` : ''} ₹${data.cost} – ${data.description}`,
+                : `${data.liters ? `${data.liters}L` : ''} $${data.cost} – ${data.description}`,
             entityType: 'expense',
             entityId: expense._id,
             actorRole: actor.role,

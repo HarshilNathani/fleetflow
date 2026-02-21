@@ -319,17 +319,15 @@ export default function Dashboard() {
                                     <li key={item.id}>
                                         <Link
                                             href={item.href}
-                                            className={`block rounded-lg border p-3 transition-colors hover:bg-slate-50 ${
-                                                !item.read ? 'border-blue-200 bg-blue-50/50' : 'border-slate-200'
-                                            }`}
+                                            className={`block rounded-lg border p-3 transition-colors hover:bg-slate-50 ${!item.read ? 'border-blue-200 bg-blue-50/50' : 'border-slate-200'
+                                                }`}
                                         >
                                             <div className="flex items-start gap-2">
                                                 <Bell
-                                                    className={`h-4 w-4 mt-0.5 shrink-0 ${
-                                                        !item.read
+                                                    className={`h-4 w-4 mt-0.5 shrink-0 ${!item.read
                                                             ? 'text-blue-600'
                                                             : 'text-slate-400'
-                                                    }`}
+                                                        }`}
                                                 />
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-sm font-medium text-slate-900 truncate">
@@ -409,17 +407,16 @@ export default function Dashboard() {
                                             </td>
                                             <td className="py-3">
                                                 <span
-                                                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-                                                        TRIP_STATUS_BADGE[
-                                                            trip.status
+                                                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${TRIP_STATUS_BADGE[
+                                                        trip.status
                                                         ] ?? 'bg-slate-100 text-slate-700'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {trip.status}
                                                 </span>
                                             </td>
                                             <td className="py-3 font-medium">
-                                                ₹
+                                                $
                                                 {trip.revenue.toLocaleString()}
                                             </td>
                                             <td className="py-3 text-slate-600">
