@@ -7,9 +7,13 @@ import Driver from '@/models/Driver';
 import { DriverStatus } from '@/types/driver';
 import mongoose from 'mongoose';
 
-export async function getAllTrips() {
+export async function getAllTrips(vehicleId?: string) {
     await dbConnect();
-    return await Trip.find({}).populate('vehicleId').populate('driverId');
+    const query = vehicleId ? { vehicleId } : {};
+    return await Trip.find(query)
+        .sort({ createdAt: -1 })
+        .populate('vehicleId')
+        .populate('driverId');
 }
 
 export async function createTrip(data: Partial<ITrip>) {

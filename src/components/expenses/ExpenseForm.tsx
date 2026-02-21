@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseSchema, ExpenseFormValues } from '@/lib/validations/expense';
 import { ExpenseType } from '@/types/expense';
+import { TripStatus } from '@/types/trip';
+import { Badge } from '@/components/ui/badge';
 import {
     Form,
     FormControl,
@@ -24,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { cn } from '@/lib/utils';
 
 interface ExpenseFormProps {
     onSubmit: (data: any) => void;
@@ -33,6 +36,7 @@ interface ExpenseFormProps {
 export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [trips, setTrips] = useState<any[]>([]);
+    const [loadingTrips, setLoadingTrips] = useState(false);
 
     const form = useForm<any>({
         resolver: zodResolver(expenseSchema),
@@ -46,28 +50,77 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
             liters: 0,
         },
     });
+    const vehicleId = form.watch('vehicleId');
 
     const type = form.watch('type');
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchVehicles = async () => {
             try {
-                const [vDist, tDist] = await Promise.all([
-                    axios.get('/api/vehicles'),
-                    axios.get('/api/trips'),
-                ]);
-                setVehicles(vDist.data);
-                setTrips(tDist.data);
+                const response = await axios.get('/api/vehicles');
+                setVehicles(response.data);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('Error fetching vehicles:', error);
             }
         };
-        fetchData();
+        fetchVehicles();
     }, []);
+
+    useEffect(() => {
+        const fetchTrips = async () => {
+            if (!vehicleId) {
+                setTrips([]);
+                return;
+            }
+
+            try {
+                setLoadingTrips(true);
+                const response = await axios.get(`/api/trips?vehicleId=${vehicleId}`);
+                setTrips(response.data);
+            } catch (error) {
+                console.error('Error fetching trips:', error);
+            } finally {
+                setLoadingTrips(false);
+            }
+        };
+
+        // Reset tripId when vehicle changes
+        form.setValue('tripId', '');
+        fetchTrips();
+    }, [vehicleId, form]);
+
+    const handleFormSubmit = (data: any) => {
+        // Convert "none" or empty to undefined
+        const submissionData = {
+            ...data,
+            tripId: (data.tripId === 'none' || data.tripId === '') ? undefined : data.tripId
+        };
+
+        // Final sanity check: if trip exists, verify it belongs to this vehicle in the local state
+        if (submissionData.tripId) {
+            const selectedTrip = trips.find(t => t._id === submissionData.tripId);
+            if (selectedTrip && selectedTrip.vehicleId?._id !== submissionData.vehicleId && selectedTrip.vehicleId !== submissionData.vehicleId) {
+                console.error('Integrity Error: Trip does not belong to selected vehicle');
+                return;
+            }
+        }
+
+        onSubmit(submissionData);
+    };
+
+    const getStatusBadge = (status: TripStatus) => {
+        switch (status) {
+            case TripStatus.DRAFT: return <Badge variant="outline" className="ml-2 bg-slate-100 text-slate-600 border-slate-200">Draft</Badge>;
+            case TripStatus.DISPATCHED: return <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-600 border-amber-200">Dispatched</Badge>;
+            case TripStatus.COMPLETED: return <Badge variant="outline" className="ml-2 bg-green-50 text-green-600 border-green-200">Completed</Badge>;
+            case TripStatus.CANCELLED: return <Badge variant="destructive" className="ml-2">Cancelled</Badge>;
+            default: return null;
+        }
+    };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -125,22 +178,51 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                         name="tripId"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Related Trip (Optional)</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormLabel className="flex items-center gap-2">
+                                    Related Trip (Optional)
+                                    {loadingTrips && <Loader2 className="h-3 w-3 animate-spin text-blue-500" />}
+                                </FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    disabled={!vehicleId || type !== ExpenseType.FUEL || loadingTrips}
+                                >
                                     <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select trip" />
+                                        <SelectTrigger className={cn(!vehicleId && "opacity-60")}>
+                                            <SelectValue placeholder={
+                                                !vehicleId
+                                                    ? "Select vehicle first"
+                                                    : type !== ExpenseType.FUEL
+                                                        ? "Only for fuel expenses"
+                                                        : "Select trip"
+                                            } />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="">None</SelectItem>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {trips.length === 0 && vehicleId && !loadingTrips && (
+                                            <div className="px-2 py-4 text-center text-xs text-slate-500 italic">
+                                                No trips found for this vehicle
+                                            </div>
+                                        )}
                                         {trips.map((t: any) => (
                                             <SelectItem key={t._id} value={t._id}>
-                                                {t.origin} to {t.destination} ({new Date(t.createdAt).toLocaleDateString()})
+                                                <div className="flex flex-col items-start gap-0.5">
+                                                    <div className="text-sm">
+                                                        {t.origin} → {t.destination}
+                                                    </div>
+                                                    <div className="flex items-center text-[10px] text-slate-500">
+                                                        {new Date(t.createdAt).toLocaleDateString()}
+                                                        {getStatusBadge(t.status)}
+                                                    </div>
+                                                </div>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <p className="text-[11px] text-slate-500 mt-1">
+                                    {!vehicleId ? "Select a vehicle to load trips." : (type !== ExpenseType.FUEL ? "Trip selection is only available for fuel expenses." : "")}
+                                </p>
                                 <FormMessage />
                             </FormItem>
                         )}

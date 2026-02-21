@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Truck } from 'lucide-react';
 import axios from 'axios';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -36,9 +37,12 @@ export default function RegisterPage() {
 
         try {
             await axios.post('/api/auth/register', data);
+            toast.success('Account created! Please sign in.');
             router.push('/login');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to register');
+            const message = err.response?.data?.message || 'Failed to register';
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }

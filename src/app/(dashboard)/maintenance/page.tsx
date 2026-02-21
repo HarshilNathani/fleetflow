@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
 import { VehicleStatus } from '@/types/vehicle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 export default function MaintenanceLogs() {
     const [vehiclesInShop, setVehiclesInShop] = useState([]);
@@ -29,6 +30,7 @@ export default function MaintenanceLogs() {
             const response = await axios.get('/api/vehicles');
             setVehiclesInShop(response.data.filter((v: any) => v.status === VehicleStatus.IN_SHOP));
         } catch (error) {
+            toast.error('Failed to load vehicles');
             console.error('Error fetching vehicles:', error);
         } finally {
             setLoading(false);
@@ -38,8 +40,10 @@ export default function MaintenanceLogs() {
     const onComplete = async (vehicleId: string) => {
         try {
             await axios.post(`/api/maintenance/complete/${vehicleId}`);
+            toast.success('Maintenance completed successfully');
             fetchVehicles();
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Error completing maintenance');
             console.error('Error completing maintenance:', error);
         }
     };

@@ -124,7 +124,7 @@ export function VehicleForm({ initialData, onSubmit, loading }: VehicleFormProps
                             <FormItem>
                                 <FormLabel>Max Capacity (kg)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input type="number" min={0} {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -137,7 +137,7 @@ export function VehicleForm({ initialData, onSubmit, loading }: VehicleFormProps
                             <FormItem>
                                 <FormLabel>Odometer (km)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input type="number" min={0} {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -150,7 +150,7 @@ export function VehicleForm({ initialData, onSubmit, loading }: VehicleFormProps
                             <FormItem>
                                 <FormLabel>Cost ($)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input type="number" min={0} {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

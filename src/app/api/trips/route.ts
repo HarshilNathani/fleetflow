@@ -3,9 +3,11 @@ import { getAllTrips, createTrip } from '@/lib/services/trip.service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const trips = await getAllTrips();
+        const { searchParams } = new URL(req.url);
+        const vehicleId = searchParams.get('vehicleId');
+        const trips = await getAllTrips(vehicleId || undefined);
         return NextResponse.json(trips);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

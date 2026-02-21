@@ -25,6 +25,7 @@ import { DriverStatus } from '@/types/driver';
 import { DriverForm } from '@/components/drivers/DriverForm';
 import { DriverFormValues } from '@/lib/validations/driver';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function DriverProfiles() {
     const [drivers, setDrivers] = useState([]);
@@ -42,6 +43,7 @@ export default function DriverProfiles() {
             const response = await axios.get('/api/drivers');
             setDrivers(response.data);
         } catch (error) {
+            toast.error('Failed to fetch drivers');
             console.error('Error fetching drivers:', error);
         } finally {
             setLoading(false);
@@ -58,8 +60,10 @@ export default function DriverProfiles() {
             }
             setOpen(false);
             setEditingDriver(null);
+            toast.success(editingDriver ? 'Driver profile updated' : 'Driver profile added');
             fetchDrivers();
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Error saving driver');
             console.error('Error saving driver:', error);
         } finally {
             setSubmitting(false);

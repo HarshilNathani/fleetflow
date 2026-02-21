@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Truck } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -39,12 +40,15 @@ export default function LoginPage() {
 
             if (result?.error) {
                 setError('Invalid email or password');
+                toast.error('Invalid email or password');
             } else {
+                toast.success('Welcome back!');
                 router.push('/dashboard');
                 router.refresh();
             }
         } catch (err) {
             setError('An unexpected error occurred');
+            toast.error('An unexpected error occurred');
         } finally {
             setLoading(false);
         }

@@ -24,6 +24,7 @@ import axios from 'axios';
 import { ExpenseType } from '@/types/expense';
 import { ExpenseForm } from '@/components/expenses/ExpenseForm';
 import { ExpenseFormValues } from '@/lib/validations/expense';
+import { toast } from 'sonner';
 
 export default function ExpenseLogs() {
     const [expenses, setExpenses] = useState([]);
@@ -40,6 +41,7 @@ export default function ExpenseLogs() {
             const response = await axios.get('/api/expenses');
             setExpenses(response.data);
         } catch (error) {
+            toast.error('Failed to load expenses');
             console.error('Error fetching expenses:', error);
         } finally {
             setLoading(false);
@@ -51,8 +53,10 @@ export default function ExpenseLogs() {
             setSubmitting(true);
             await axios.post('/api/expenses', values);
             setOpen(false);
+            toast.success('Expense logged successfully');
             fetchExpenses();
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Error saving expense');
             console.error('Error saving expense:', error);
         } finally {
             setSubmitting(false);

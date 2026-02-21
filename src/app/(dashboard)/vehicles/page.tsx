@@ -24,6 +24,7 @@ import axios from 'axios';
 import { VehicleStatus } from '@/types/vehicle';
 import { VehicleForm } from '@/components/vehicles/VehicleForm';
 import { VehicleFormValues } from '@/lib/validations/vehicle';
+import { toast } from 'sonner';
 
 export default function VehicleRegistry() {
     const [vehicles, setVehicles] = useState([]);
@@ -41,6 +42,7 @@ export default function VehicleRegistry() {
             const response = await axios.get('/api/vehicles');
             setVehicles(response.data);
         } catch (error) {
+            toast.error('Failed to fetch vehicles');
             console.error('Error fetching vehicles:', error);
         } finally {
             setLoading(false);
@@ -57,8 +59,10 @@ export default function VehicleRegistry() {
             }
             setOpen(false);
             setEditingVehicle(null);
+            toast.success(editingVehicle ? 'Vehicle updated' : 'Vehicle added');
             fetchVehicles();
-        } catch (error) {
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Error saving vehicle');
             console.error('Error saving vehicle:', error);
         } finally {
             setSubmitting(false);
