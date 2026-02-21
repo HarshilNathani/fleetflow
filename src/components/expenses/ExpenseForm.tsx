@@ -50,9 +50,11 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
             liters: 0,
         },
     });
-    const vehicleId = form.watch('vehicleId');
 
+    const vehicleId = form.watch('vehicleId');
     const type = form.watch('type');
+    const selectedTripId = form.watch('tripId');
+    const selectedTrip = trips.find(t => t._id === selectedTripId);
 
     useEffect(() => {
         const fetchVehicles = async () => {
@@ -188,14 +190,37 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                                     disabled={!vehicleId || type !== ExpenseType.FUEL || loadingTrips}
                                 >
                                     <FormControl>
-                                        <SelectTrigger className={cn(!vehicleId && "opacity-60")}>
-                                            <SelectValue placeholder={
-                                                !vehicleId
-                                                    ? "Select vehicle first"
-                                                    : type !== ExpenseType.FUEL
-                                                        ? "Only for fuel expenses"
-                                                        : "Select trip"
-                                            } />
+                                        <SelectTrigger
+                                            className={cn(
+                                                "w-full flex items-center gap-2 overflow-hidden",
+                                                !vehicleId && "opacity-60"
+                                            )}
+                                        >
+                                            <SelectValue
+                                                className="w-full"
+                                                placeholder={
+                                                    !vehicleId
+                                                        ? "Select vehicle first"
+                                                        : type !== ExpenseType.FUEL
+                                                            ? "Only for fuel expenses"
+                                                            : "Select trip"
+                                                }
+                                            >
+                                                {selectedTrip && (
+                                                    <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                                                        <span
+                                                            className="min-w-0 flex-1 truncate"
+                                                            title={`${selectedTrip.origin} → ${selectedTrip.destination}`}
+                                                        >
+                                                            {selectedTrip.origin} → {selectedTrip.destination}
+                                                        </span>
+
+                                                        <div className="flex-shrink-0">
+                                                            {getStatusBadge(selectedTrip.status)}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </SelectValue>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -220,9 +245,6 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <p className="text-[11px] text-slate-500 mt-1">
-                                    {!vehicleId ? "Select a vehicle to load trips." : (type !== ExpenseType.FUEL ? "Trip selection is only available for fuel expenses." : "")}
-                                </p>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -254,7 +276,7 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                             <FormItem>
                                 <FormLabel>Total Cost ($)</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} />
+                                    <Input type="number" min={0} {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -268,7 +290,7 @@ export function ExpenseForm({ onSubmit, loading }: ExpenseFormProps) {
                                 <FormItem>
                                     <FormLabel>Fuel (Liters)</FormLabel>
                                     <FormControl>
-                                        <Input type="number" {...field} />
+                                        <Input type="number" min={0} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
