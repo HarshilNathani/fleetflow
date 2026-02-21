@@ -8,11 +8,8 @@ export const expenseSchema = z
         type: z.nativeEnum(ExpenseType),
 
         liters: z
-            .union([
-                z.coerce.number().positive("Liters must be positive"),
-                z.undefined(),
-                z.nan(),
-            ])
+            .coerce.number()
+            .positive("Liters must be positive")
             .optional(),
 
         cost: z.coerce.number().positive("Cost must be positive"),
@@ -23,7 +20,7 @@ export const expenseSchema = z
     })
     .superRefine((data, ctx) => {
         if (data.type === ExpenseType.FUEL) {
-            if (!data.liters || data.liters <= 0) {
+            if (data.liters === undefined || data.liters <= 0) {
                 ctx.addIssue({
                     path: ["liters"],
                     code: z.ZodIssueCode.custom,
